@@ -23,39 +23,40 @@ TODO; (finish it, then) add to clojars, then add installation & usage instructs
 
 (use 'robinhood.clj.client)
 
-(robinhood.clj.client/quotes {:symbols "EAF,MSFT"})
+(quotes {:symbols "EAF,MSFT"})
 
-;; outputs;
-{:results [{:updated-at "2018-08-23T20:02:20Z",
-            :instrument "https://api.robinhood.com/instruments/2f30ec68-bb19-44aa-a289-b50b43c2257c/",
-            :bid-price "18.350000",
-            :last-trade-price-source "consolidated",
-            :symbol "EAF",
-            :last-trade-price "18.370000",
-            :ask-price "18.360000",
-            :bid-size 11600,
-            :ask-size 2100,
-            :last-extended-hours-trade-price "18.370000",
-            :previous-close "18.370000",
-            :has-traded true,
-            :trading-halted false,
-            :adjusted-previous-close "18.370000",
-            :previous-close-date "2018-08-22"}
-           {:updated-at "2018-08-23T23:57:49Z",
-            :instrument "https://api.robinhood.com/instruments/50810c35-d215-4866-9758-0ada4ac79ffa/",
-            :bid-price "107.530000",
-            :last-trade-price-source "consolidated",
-            :symbol "MSFT",
-            :last-trade-price "107.560000",
-            :ask-price "107.620000",
-            :bid-size 15100,
-            :ask-size 400,
-            :last-extended-hours-trade-price "107.300000",
-            :previous-close "107.060000",
-            :has-traded true,
-            :trading-halted false,
-            :adjusted-previous-close "107.060000",
-            :previous-close-date "2018-08-22"}]}
+;; output
+
+[{:updated-at "2018-08-23T20:02:20Z",
+  :instrument "https://api.robinhood.com/instruments/2f30ec68-bb19-44aa-a289-b50b43c2257c/",
+  :bid-price "18.350000",
+  :last-trade-price-source "consolidated",
+  :symbol "EAF",
+  :last-trade-price "18.370000",
+  :ask-price "18.360000",
+  :bid-size 11600,
+  :ask-size 2100,
+  :last-extended-hours-trade-price "18.370000",
+  :previous-close "18.370000",
+  :has-traded true,
+  :trading-halted false,
+  :adjusted-previous-close "18.370000",
+  :previous-close-date "2018-08-22"}
+ {:updated-at "2018-08-23T23:57:49Z",
+  :instrument "https://api.robinhood.com/instruments/50810c35-d215-4866-9758-0ada4ac79ffa/",
+  :bid-price "107.530000",
+  :last-trade-price-source "consolidated",
+  :symbol "MSFT",
+  :last-trade-price "107.560000",
+  :ask-price "107.620000",
+  :bid-size 15100,
+  :ask-size 400,
+  :last-extended-hours-trade-price "107.300000",
+  :previous-close "107.060000",
+  :has-traded true,
+  :trading-halted false,
+  :adjusted-previous-close "107.060000",
+  :previous-close-date "2018-08-22"}]
 ```
 
 ## License
