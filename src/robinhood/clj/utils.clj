@@ -4,7 +4,7 @@
             [hiccup.util :as hic]
             [clojure.data.json :as json]))
 
-; QUESTION is this dynamic???
+; QUESTION is this dynamic?
 (def client-id "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS")
 
 (defn response->body
@@ -25,14 +25,15 @@
         (assoc default-params :headers header)
         default-params)))
 
-
 (defn get-url
   ([url]
    (get-url url nil nil))
   ;; A surprising amount of the robinhood api works w/o auth :)
   ([url query-params]
    (get-url url query-params nil))
-  ;; But for account related endpoints we must call w/ `robinhood.clj.auth/auth`
+  ;; For any account related endpoint (and sometimes others) we must
+  ;; 1. Setup our robinhood username & password in our env vars (see Readme)
+  ;; 2. Pass `robinhood.clj.auth/auth` in when calling urls that require auth
   ([url query-params auth]
    (-> url
        (hic/url query-params)

@@ -28,12 +28,11 @@
 
 (defn date-chain->prices
   "Takes a date-chain of option instruments and pulls back the bid-size,
-  ask-size, impliied volatility, the greeks (rho/ghamma/vega/delta/gamma),
+  ask-size, implied volatility, the greeks (rho/delta/gamma/vega/theta),
   high and low prices, chance of profit short/long, and more."
   [[date date-chain]]
   [date
-   (for [instrument-set (partition 10 date-chain)
-         :let [_ (proto-repl.saved-values/save 5)]]
+   (for [instrument-set (partition 10 date-chain)]
      (if (seq instrument-set)
        (:results (u/get-url
                   "https://api.robinhood.com/marketdata/options/"
