@@ -1,5 +1,6 @@
 (ns robinhood.clj.core
   (:require [robinhood.clj.utils :as u]
+            [robinhood.clj.options :as options]
             [robinhood.clj.auth :as auth]))
 
 (defn quotes
@@ -10,51 +11,11 @@
 
 (defn instrument
   [query-params]
-  (let [instrument-url
-        (->> query-params
-             quotes
-             first
-             :instrument)]
-    (u/get-url instrument-url nil)))
-
-(defn option-chain
-  [query-params]
-  (let [option-chain-url
-        (->> query-params
-             instrument
-             :tradable-chain-id
-             (str "https://api.robinhood.com/options/chains/"))]
-    (u/get-url option-chain-url nil)))
-
-(defn option-chain-instruments
-  [query-params type]
-  (let [optchain (option-chain query-params)
-        dates (:expiration-dates optchain)
-        query-params
-        {:expiration_dates (first dates) ; TODO figure out how to pull all option chains for all dates
-         :chain_id (:id optchain)
-         :state "active"
-         :tradability "tradable"
-         :type type}]
-    (->> query-params
-         (u/get-url "https://api.robinhood.com/options/instruments/")
-         :results)))
-
-(defn- gather-option-instrument-urls
-  "Helper method for pulling details on an option chain for some insrument.
-  Builds a string of comma seperated instrument urls."
-  [query-params type]
-  (->> (option-chain-instruments query-params type)
-       (map :url)
-       (clojure.string/join ",")))
-
-(defn get-option-chain-prices
-  [query-params type]
-  (:results
-   (u/get-url
-    "https://api.robinhood.com/marketdata/options/"
-    {:instruments (gather-option-instrument-urls query-params type)}
-    auth/auth)))
+  (u/get-url
+   (->> query-params
+        quotes
+        first
+        :instrument)))
 
 (defn news
   [symbol]
@@ -78,21 +39,6 @@
 #_(news "MSFT")
 #_(quotes {:symbols "EAF,MSFT"})
 #_(instrument {:symbols "EVC"})
-#_(option-chain {:symbols "VERI"})
-#_(option-chain-instruments {:symbols "EVC"} "call")
-#_(gather-option-instrument-urls {:symbols "EVC"} "call")
-#_(get-option-chain-prices {:symbols "EAF"} "call")
 #_(instruments "EVC")
 #_(movers "up")
 #_(movers "down")
-
-#_
-(take 2 ;for brevity
- (get-option-chain-prices
-  {:symbols "AAPL"}
-  "call"))
-#_
-(take 2 ;for brevity
- (get-option-chain-prices
-  {:symbols "AAPL"}
-  "put"))
