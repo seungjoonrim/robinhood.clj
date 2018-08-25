@@ -1,4 +1,4 @@
-(ns robinhood.clj.client
+(ns robinhood.clj.core
   (:require [robinhood.clj.utils :as u]
             [robinhood.clj.auth :as auth]))
 
@@ -42,7 +42,7 @@
 
 (defn- gather-option-instrument-urls
   "Helper method for pulling details on an option chain for some insrument.
-  Builds a string of comma seperated instrument urls for use on the "
+  Builds a string of comma seperated instrument urls."
   [query-params type]
   (->> (option-chain-instruments query-params type)
        (map :url)
@@ -68,3 +68,14 @@
 #_(option-chain-instruments {:symbols "EVC"} "call")
 #_(gather-option-instrument-urls {:symbols "EVC"} "call")
 #_(get-option-chain-prices {:symbols "EAF"} "call")
+
+#_
+(take 2 ;for brevity
+ (get-option-chain-prices
+  {:symbols "AAPL"}
+  "call"))
+#_
+(take 2 ;for brevity
+ (get-option-chain-prices
+  {:symbols "AAPL"}
+  "put"))
