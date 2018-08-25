@@ -18,9 +18,13 @@
   revoke the specified token."
   [token])
 
-(defn account-info [token]
-  (:results (u/get-url "https://api.robinhood.com/accounts/" nil token)))
+(defn account-info
+  "Example auth'd call (w/o query-params). For an example with query-params
+  see `core/get-option-chain-prices`"
+  [auth]
+  (:results
+   (u/get-url "https://api.robinhood.com/accounts/" nil auth)))
 
-(def token (:access-token (login username password)))
+(def auth (login username password))
 
-#_(account-info token)
+#_(account-info auth)

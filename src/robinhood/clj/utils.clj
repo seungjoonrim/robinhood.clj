@@ -15,25 +15,29 @@
     nil))
 
 (defn build-get-params
-  [token]
-  (let [default-params {:content-type :json
-                        :accept :json}
-                        ; :debug true
-                        ; :debug-body true}
-        header (when token {:authorization (str "Bearer " token)
-                            :authority "api.robinhood.com"})]
+  [auth]
+  (let [default-params {:content-type :json :accept :json}
+                        ;:debug true :debug-body true}
+        header (when auth {:authority "api.robinhood.com"
+                           :authorization
+                           (str "Bearer " (:access-token auth))})]
     (if header
         (assoc default-params :headers header)
         default-params)))
 
+
 (defn get-url
+  ([url]
+   (get-url url nil nil))
+  ;; A surprising amount of the robinhood api works w/o auth :)
   ([url query-params]
    (get-url url query-params nil))
-  ([url query-params token]
+  ;; But for account related endpoints we must call w/ `robinhood.clj.auth/auth`
+  ([url query-params auth]
    (-> url
        (hic/url query-params)
        str
-       (client/get (build-get-params token))
+       (client/get (build-get-params auth))
        response->body)))
 
 (defn post-url

@@ -31,7 +31,7 @@
   (let [optchain (option-chain query-params)
         dates (:expiration-dates optchain)
         query-params
-        {:expiration_dates (first dates)
+        {:expiration_dates (first dates) ; TODO figure out how to pull all option chains for all dates
          :chain_id (:id optchain)
          :state "active"
          :tradability "tradable"
@@ -54,20 +54,37 @@
    (u/get-url
     "https://api.robinhood.com/marketdata/options/"
     {:instruments (gather-option-instrument-urls query-params type)}
-    auth/token)))
+    auth/auth)))
+
+(defn news
+  [symbol]
+  (u/get-url
+   (str "https://api.robinhood.com/midlands/news/" symbol "/")))
+
+(defn instruments
+  [symbol]
+  (:results
+   (u/get-url "https://api.robinhood.com/instruments/"
+              {:symbol symbol})))
+
+(defn movers
+  [direction] ; "up" or "down"
+  (:results
+   (u/get-url "https://api.robinhood.com/midlands/movers/sp500/"
+              {:direction direction})))
 
 ; https://api.robinhood.com/marketdata/options/historicals/200041ff-60ca-4dec-a5e9-0d4a02732a30/?span=day&interval=5minute
-; https://api.robinhood.com/midlands/news/EAF/
-; https://api.robinhood.com/instruments/?symbol=MSFT
-; https://api.robinhood.com/midlands/movers/sp500/?direction=up
-; https://api.robinhood.com/midlands/movers/sp500/?direction=down
 
+#_(news "MSFT")
 #_(quotes {:symbols "EAF,MSFT"})
 #_(instrument {:symbols "EVC"})
 #_(option-chain {:symbols "VERI"})
 #_(option-chain-instruments {:symbols "EVC"} "call")
 #_(gather-option-instrument-urls {:symbols "EVC"} "call")
 #_(get-option-chain-prices {:symbols "EAF"} "call")
+#_(instruments "EVC")
+#_(movers "up")
+#_(movers "down")
 
 #_
 (take 2 ;for brevity
