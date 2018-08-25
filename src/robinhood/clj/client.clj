@@ -1,10 +1,11 @@
 (ns robinhood.clj.client
-  (:require [robinhood.clj.utils :as u]))
+  (:require [robinhood.clj.utils :as u]
+            [robinhood.clj.auth :as auth]))
 
 (defn quotes
   [query-params]
   (->> query-params
-       (u/geturl "https://api.robinhood.com/quotes/") ;this / at the end is needed!
+       (u/get-url "https://api.robinhood.com/quotes/") ;this / at the end is needed!
        :results))
 
 (defn instrument
@@ -14,7 +15,7 @@
              quotes
              first
              :instrument)]
-    (u/geturl instrument-url nil)))
+    (u/get-url instrument-url nil)))
 
 (defn option-chain
   [query-params]
@@ -23,7 +24,7 @@
              instrument
              :tradable-chain-id
              (str "https://api.robinhood.com/options/chains/"))]
-    (u/geturl option-chain-url nil)))
+    (u/get-url option-chain-url nil)))
 
 (defn option-chain-instruments
   [query-params type]
@@ -36,20 +37,26 @@
          :tradability "tradable"
          :type type}]
     (->> query-params
-         (u/geturl "https://api.robinhood.com/options/instruments/")
+         (u/get-url "https://api.robinhood.com/options/instruments/")
          :results)))
 
-(defn gather-option-instrument-urls
+(defn- gather-option-instrument-urls
+  "Helper method for pulling details on an option chain for some insrument.
+  Builds a string of comma seperated instrument urls for use on the "
   [query-params type]
   (->> (option-chain-instruments query-params type)
        (map :url)
        (clojure.string/join ",")))
 
-;; TODO @HALLJSON product value idea;
-;; give me the option to record certain option information into a local database
-;; at arbtitrary intervals so that i can track option values over time
-;;... maybe one day we can operattionalize this and make money yaaaaaay
+(defn get-option-chain-prices
+  [query-params type]
+  (:results
+   (u/get-url
+    "https://api.robinhood.com/marketdata/options/"
+    {:instruments (gather-option-instrument-urls query-params type)}
+    auth/token)))
 
+; https://api.robinhood.com/marketdata/options/historicals/200041ff-60ca-4dec-a5e9-0d4a02732a30/?span=day&interval=5minute
 ; https://api.robinhood.com/midlands/news/EAF/
 ; https://api.robinhood.com/instruments/?symbol=MSFT
 ; https://api.robinhood.com/midlands/movers/sp500/?direction=up
@@ -60,3 +67,4 @@
 #_(option-chain {:symbols "VERI"})
 #_(option-chain-instruments {:symbols "EVC"} "call")
 #_(gather-option-instrument-urls {:symbols "EVC"} "call")
+#_(get-option-chain-prices {:symbols "EAF"} "call")

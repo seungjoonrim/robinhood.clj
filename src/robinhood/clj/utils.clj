@@ -4,6 +4,9 @@
             [hiccup.util :as hic]
             [clojure.data.json :as json]))
 
+; QUESTION is this dynamic???
+(def client-id "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS")
+
 (defn response->body
   [response]
   (if (= 200 (:status response))
@@ -11,10 +14,41 @@
         (json/read-str :key-fn #(keyword (s/replace % "_" "-"))))
     nil))
 
-(defn geturl
-  [url query-params]
-  (-> url
-      (hic/url query-params)
-      str
-      (client/get {:accept :json})
-      response->body))
+(defn build-get-params
+  [token]
+  (let [default-params {:content-type :json
+                        :accept :json}
+                        ; :debug true
+                        ; :debug-body true}
+        header (when token {:authorization (str "Bearer " token)
+                            :authority "api.robinhood.com"})]
+    (if header
+        (assoc default-params :headers header)
+        default-params)))
+
+(defn get-url
+  ([url query-params]
+   (get-url url query-params nil))
+  ([url query-params token]
+   (-> url
+       (hic/url query-params)
+       str
+       (client/get (build-get-params token))
+       response->body)))
+
+(defn post-url
+  [url query-params form-params]
+  (let [default-form-params {:expires_in 86400
+                             :grant_type "password"
+                             :client_id client-id
+                             :scope "internal"}]
+    (-> url
+        (hic/url query-params)
+        str
+        (client/post
+          {:content-type :json
+           :accept :json
+           ;:debug true
+           ;:debug-body true
+           :form-params (merge default-form-params form-params)})
+        response->body)))
