@@ -3,6 +3,7 @@
   :url "https://github.com/halljson/robinhood.clj"
   :author "Jason Hall halljason715@gmail.com>"
   :dependencies [[org.clojure/clojure "1.9.0"]
+                 [org.clojure/core.async "0.4.474"]
                  [clj-http "3.9.1"]
                  [hiccup "1.0.5"]
                  [cheshire "5.8.0"]

@@ -1,6 +1,5 @@
 (ns robinhood.clj.core
   (:require [robinhood.clj.utils :as u]
-            [robinhood.clj.options :as options]
             [robinhood.clj.auth :as auth]))
 
 (defn quotes
@@ -33,8 +32,6 @@
   (:results
    (u/get-url "https://api.robinhood.com/midlands/movers/sp500/"
               {:direction direction})))
-
-; https://api.robinhood.com/marketdata/options/historicals/200041ff-60ca-4dec-a5e9-0d4a02732a30/?span=day&interval=5minute
 
 #_(news "MSFT")
 #_(quotes {:symbols "EAF,MSFT"})
