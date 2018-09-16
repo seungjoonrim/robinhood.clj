@@ -4,8 +4,7 @@
             [robinhood.clj.utils :as u])
   (:import [java.net URLEncoder]))
 
-;-----------------------------------------------------------------------------
-;     NO AUTH
+;-----    NO AUTH -- GENERAL     --------------------------------------------
 
 (defn quotes
   [query-params]
@@ -38,8 +37,7 @@
    (u/urlopen "https://api.robinhood.com/midlands/movers/sp500/"
               {:direction direction})))
 
-;-----------------------------------------------------------------------------
-;     NO AUTH -- OPTIONS
+;-----    NO AUTH -- OPTIONS     --------------------------------------------
 
 (defn instrument->option-chain-url
   "Creates an option chain url from an instrument map"
@@ -98,8 +96,7 @@
         (opt-chain->all-date-chains $ type)
         (mapv #(date-chain->prices % auth) $)))
 
-;-----------------------------------------------------------------------------
-;     AUTHED
+;-----    AUTHED -- GENERAL     --------------------------------------------
 
 (defn account-info
   "Example auth'd call (w/o query-params). For an example with query-params
@@ -108,8 +105,7 @@
   (:results
    (u/urlopen "https://api.robinhood.com/accounts/" nil auth)))
 
-;-----------------------------------------------------------------------------
-;     AUTHED -- WATCHLIST
+;-----    AUTHED -- WATCHLIST     --------------------------------------------
 
 (defn watchlist-instruments
   "Get user watchlist instruments"
@@ -134,8 +130,7 @@
               (watchlist-instruments-maps auth))))
 
 
-;-----------------------------------------------------------------------------
-;     TODO
+;-----    TODO     --------------------------------------------
 ;     Browse robinhood more and add to this list of TODO's
 ;     https://api.robinhood.com/marketdata/options/historicals/200041ff-60ca-4dec-a5e9-0d4a02732a30/?span=day&interval=5minute
 

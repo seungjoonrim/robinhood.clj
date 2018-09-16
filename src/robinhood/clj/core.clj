@@ -63,7 +63,7 @@
 (defrecord RobinhoodClient [auth]
   RobinhoodChannels
 
-  ; NO AUTH
+  ; NO AUTH -- GENERAL
   (news [this symbol]
     (client/news symbol))
   (movers [this direction]
@@ -85,12 +85,13 @@
   (opt-chain->all-date-chains [this opt-chain type]
     (client/opt-chain->all-date-chains opt-chain type))
 
+  ; AUTHED -- OPTIONS
   (date-chain->prices [this chain]
     (client/date-chain->prices chain auth))
   (get-option-chain-prices [this query-params type]
     (client/get-option-chain-prices query-params type auth))
 
-    ; AUTHED
+    ; AUTHED -- GENERAL
   (account-info [this]
     (client/account-info auth))
 
@@ -116,26 +117,3 @@
 ;; https://api.robinhood.com/marketdata/options/historicals/200041ff-60ca-4dec-a5e9-0d4a02732a30/?span=day&interval=5minute
 
 (def rc (login auth/username auth/password))
-(account-info rc)
-(news rc "MSFT")
-(movers rc "up")
-(movers rc "down")
-(quotes rc {:symbols "EAF,MSFT"})
-(instrument rc {:symbols "EVC"})
-(instruments rc "EVC")
-
-(def opt-chain (option-chain-base rc {:symbols "VERI"}))
-(def some-date (rand-nth (:expiration-dates opt-chain)))
-
-(option-date-chain rc opt-chain some-date "put")
-
-(get-option-chain-prices rc {:symbols "VERI"} "call")
-
-#_(take 2 ;for brevity
-    (get-option-chain-prices rc {:symbols "AAPL"} "call"))
-
-#_(take 2 ;for brevity
-    (get-option-chain-prices rc {:symbols "AAPL"} "put"))
-
-(def foo (watchlist-option-chain-prices rc "call"))
-(get-in foo [0 0 1])
