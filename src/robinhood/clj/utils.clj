@@ -1,20 +1,35 @@
 (ns robinhood.clj.utils
   (:require [clj-http.client :as client]
-            [clojure.string :as s]
+            [clojure.string :as string]
             [hiccup.util :as hic]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json])
+  (:import [java.net URLEncoder]))
 
 ; QUESTION is this dynamic?
 (def client-id "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS")
 
-(defn response->body
+; (defn- build-pagination-param
+;   [rcount since]
+;   (str
+;     "?"
+;     (and since (str "after=" since))
+;     (and since rcount "&")
+;     (and rcount (str "count=" rcount))))
+
+(defn- post-data [data]
+  (letfn [(k  [x] (name (key x)))
+          (v  [x] (URLEncoder/encode (str (val x))))
+          (kv [x] (str (k x) "=" (v x) "utf8"))]
+         (string/join "&" (map kv data))))
+
+(defn- response->body
   [response]
   (if (= 200 (:status response))
     (-> (:body response)
-        (json/read-str :key-fn #(keyword (s/replace % "_" "-"))))
+        (json/read-str :key-fn #(keyword (string/replace % "_" "-"))))
     nil))
 
-(defn build-get-params
+(defn- build-get-params
   [auth]
   (let [default-params {:content-type :json :accept :json}
                         ;:debug true :debug-body true}
@@ -25,12 +40,12 @@
         (assoc default-params :headers header)
         default-params)))
 
-(defn get-url
+(defn urlopen
   ([url]
-   (get-url url nil nil))
+   (urlopen url nil nil))
   ;; A surprising amount of the robinhood api works w/o auth :)
   ([url query-params]
-   (get-url url query-params nil))
+   (urlopen url query-params nil))
   ;; For any account related endpoint (and sometimes others) we must
   ;; 1. Setup our robinhood username & password in our env vars (see Readme)
   ;; 2. Pass `robinhood.clj.auth/auth` in when calling urls that require auth
@@ -41,8 +56,10 @@
        (client/get (build-get-params auth))
        response->body)))
 
-(defn post-url
-  [url query-params form-params]
+(defn urlpost
+ ([url query-params]
+  (urlpost url query-params {}))
+ ([url query-params form-params]
   (let [default-form-params {:expires_in 86400
                              :grant_type "password"
                              :client_id client-id
@@ -56,4 +73,4 @@
            ;:debug true
            ;:debug-body true
            :form-params (merge default-form-params form-params)})
-        response->body)))
+        response->body))))
