@@ -1,9 +1,11 @@
 (ns robinhood.clj.client
   "DO NOT use forms under this ns."
   (:require [clj-http.client :as client]
-            [robinhood.clj.auth :as auth]
             [robinhood.clj.utils :as u])
   (:import [java.net URLEncoder]))
+
+;-----------------------------------------------------------------------------
+;     NO AUTH
 
 (defn quotes
   [query-params]
@@ -36,15 +38,8 @@
    (u/urlopen "https://api.robinhood.com/midlands/movers/sp500/"
               {:direction direction})))
 
-(defn account-info
-  "Example auth'd call (w/o query-params). For an example with query-params
-  see `core/get-option-chain-prices`"
-  [auth]
-  (:results
-   (u/urlopen "https://api.robinhood.com/accounts/" nil auth)))
-
 ;-----------------------------------------------------------------------------
-;     OPTIONS
+;     NO AUTH -- OPTIONS
 
 (defn instrument->option-chain-url
   "Creates an option chain url from an instrument map"
@@ -80,14 +75,15 @@
   "Takes a date-chain of option instruments and pulls back the bid-size,
   ask-size, implied volatility, the greeks (rho/delta/gamma/vega/theta),
   high and low prices, chance of profit short/long, and more."
-  [[date date-chain]]
-  [date
-   (for [instrument-set (partition 10 date-chain)]
-     (if (seq instrument-set)
-       (:results (u/urlopen
-                  "https://api.robinhood.com/marketdata/options/"
-                  {:instruments (date-chain->instrument-urls instrument-set)}
-                  auth/auth))))])
+  [chain auth]
+  (let [[date date-chain] chain]
+   [date
+    (for [instrument-set (partition 10 date-chain)]
+      (if (seq instrument-set)
+        (:results (u/urlopen
+                   "https://api.robinhood.com/marketdata/options/"
+                   {:instruments (date-chain->instrument-urls instrument-set)}
+                   auth))))]))
 
 (defn opt-chain->all-date-chains
   "Takes an option chain (which knows it's various expiration-dates) and pulls
@@ -97,13 +93,23 @@
        (:expiration-dates opt-chain)))
 
 (defn get-option-chain-prices
-  [query-params type]
+  [query-params type auth]
   (as-> (option-chain-base query-params) $
         (opt-chain->all-date-chains $ type)
-        (mapv date-chain->prices $)))
+        (mapv #(date-chain->prices % auth) $)))
 
 ;-----------------------------------------------------------------------------
-;     WATCHLIST
+;     AUTHED
+
+(defn account-info
+  "Example auth'd call (w/o query-params). For an example with query-params
+  see `core/get-option-chain-prices`"
+  [auth]
+  (:results
+   (u/urlopen "https://api.robinhood.com/accounts/" nil auth)))
+
+;-----------------------------------------------------------------------------
+;     AUTHED -- WATCHLIST
 
 (defn watchlist-instruments
   "Get user watchlist instruments"
@@ -115,17 +121,17 @@
                {:name "Default"}
                auth))))
 
-(def watchlist-urls
-  (map instrument->option-chain-url watchlist-instruments))
+(defn- watchlist-urls [auth]
+  (map instrument->option-chain-url (watchlist-instruments auth)))
 
-(def watchlist-instruments-maps
-  (map u/urlopen watchlist-urls))
+(defn- watchlist-instruments-maps [auth]
+  (map u/urlopen (watchlist-urls auth)))
 
 (defn watchlist-option-chain-prices
-  [type]
-  (mapv date-chain->prices
+  [type auth]
+  (mapv #(date-chain->prices % auth)
         (mapv #(opt-chain->all-date-chains % type)
-              watchlist-instruments-maps)))
+              (watchlist-instruments-maps auth))))
 
 
 ;-----------------------------------------------------------------------------
