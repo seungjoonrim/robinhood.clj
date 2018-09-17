@@ -1,7 +1,8 @@
 (defproject robinhood.clj "0.0.1"
-  :description "A clojure wrapper for the robinhood API"
+  :description "A clojure wrapper for the Robinhood API"
   :url "https://github.com/halljson/robinhood.clj"
-  :author "Jason Hall halljason715@gmail.com>"
+  :author "Jason Hall <halljason715@gmail.com>"
+
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [clj-http "3.9.1"]
                  [hiccup "1.0.5"]
