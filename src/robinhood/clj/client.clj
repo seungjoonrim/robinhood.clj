@@ -14,11 +14,10 @@
 
 (defn instrument
   [query-params]
-  (u/urlopen
-   (->> query-params
-        quotes
-        first
-        :instrument)))
+  (->> (quotes query-params)
+       first
+       :instrument
+       u/urlopen))
 
 (defn news
   [symbol]
@@ -54,10 +53,9 @@
 
 (defn option-chain-base
   [query-params]
-  (u/urlopen
-   (->> query-params
-        instrument
-        instrument->option-chain-url)))
+  (->> (instrument query-params)
+       instrument->option-chain-url
+       u/urlopen))
 
 (defn option-date-chain
   [opt-chain date type]
@@ -69,6 +67,15 @@
                :tradability "tradable"
                :type type})))
 
+(defn opt-chain->all-date-chains
+  "Takes an option chain (with its various expiration-dates) and pulls
+  back all the options for each expiration date on the option chain."
+  [opt-chain type]
+  (map #(option-date-chain opt-chain % type)
+       (:expiration-dates opt-chain)))
+
+;-----    AUTHED -- OPTIONS     --------------------------------------------
+
 (defn date-chain->prices
   "Takes a date-chain of option instruments and pulls back the bid-size,
   ask-size, implied volatility, the greeks (rho/delta/gamma/vega/theta),
@@ -78,17 +85,10 @@
    [date
     (for [instrument-set (partition 10 date-chain)]
       (if (seq instrument-set)
-        (:results (u/urlopen
-                   "https://api.robinhood.com/marketdata/options/"
-                   {:instruments (date-chain->instrument-urls instrument-set)}
-                   auth))))]))
-
-(defn opt-chain->all-date-chains
-  "Takes an option chain (which knows it's various expiration-dates) and pulls
-  back all the options for each expiration date on the option chain."
-  [opt-chain type]
-  (map (fn [date] [date (option-date-chain opt-chain date type)])
-       (:expiration-dates opt-chain)))
+        (:results
+         (u/urlopen "https://api.robinhood.com/marketdata/options/"
+                    {:instruments (date-chain->instrument-urls instrument-set)}
+                    auth))))]))
 
 (defn get-option-chain-prices
   [query-params type auth]
@@ -99,8 +99,7 @@
 ;-----    AUTHED -- GENERAL     --------------------------------------------
 
 (defn account-info
-  "Example auth'd call (w/o query-params). For an example with query-params
-  see `core/get-option-chain-prices`"
+  "Get account info for given auth"
   [auth]
   (:results
    (u/urlopen "https://api.robinhood.com/accounts/" nil auth)))
@@ -108,7 +107,7 @@
 ;-----    AUTHED -- WATCHLIST     --------------------------------------------
 
 (defn watchlist-instruments
-  "Get user watchlist instruments"
+  "Get all instruments on the given auth's watchlist"
   [auth]
   (map
    (comp u/urlopen :instrument)
@@ -117,18 +116,19 @@
                {:name "Default"}
                auth))))
 
-(defn- watchlist-urls [auth]
-  (map instrument->option-chain-url (watchlist-instruments auth)))
-
-(defn- watchlist-instruments-maps [auth]
-  (map u/urlopen (watchlist-urls auth)))
+(defn- watchlist-option-chains
+  "Get the option-chains for all instruments on the given auth's watchlist"
+  [auth]
+  (->> (watchlist-instruments auth)
+       (map instrument->option-chain-url)
+       (map u/urlopen)))
 
 (defn watchlist-option-chain-prices
+  "Get the option-chains for all instruments on the given auth's watchlist"
   [type auth]
-  (mapv #(date-chain->prices % auth)
-        (mapv #(opt-chain->all-date-chains % type)
-              (watchlist-instruments-maps auth))))
-
+  (->> (watchlist-option-chains auth)
+       (mapv #(opt-chain->all-date-chains % type))
+       (mapv #(date-chain->prices % auth))))
 
 ;-----    TODO     --------------------------------------------
 ;     Browse robinhood more and add to this list of TODO's
