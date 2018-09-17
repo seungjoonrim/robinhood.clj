@@ -114,21 +114,3 @@
          (RobinhoodClient. auth))))))
 
 (def rc (login auth/username auth/password))
-
-;-----    REPL     ----------------------------------------------------------
-
-
-(def opt-chain (option-chain-base rc {:symbols "VERI"}))
-(def some-date (rand-nth (:expiration-dates opt-chain)))
-
-(option-date-chain rc opt-chain some-date "put")
-
-(get-option-chain-prices rc {:symbols "VERI"} "call")
-
-#_(take 2 ;for brevity
-    (get-option-chain-prices rc {:symbols "AAPL"} "call"))
-
-#_(watchlist-instruments rc)
-
-#_(defonce foo (watchlist-option-chain-prices rc "call"))
-#_(get-in foo [0 0 1])
