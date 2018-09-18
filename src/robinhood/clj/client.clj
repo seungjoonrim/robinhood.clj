@@ -71,7 +71,7 @@
   "Takes an option chain (with its various expiration-dates) and pulls
   back all the options for each expiration date on the option chain."
   [opt-chain type]
-  (map #(option-date-chain opt-chain % type)
+  (map (fn [date] [date (option-date-chain opt-chain date type)])
        (:expiration-dates opt-chain)))
 
 ;-----    AUTHED -- OPTIONS     --------------------------------------------
@@ -104,6 +104,12 @@
   (:results
    (u/urlopen "https://api.robinhood.com/accounts/" nil auth)))
 
+(defn account-nummus-info
+  "Get account nummus(?) info for given auth"
+  [auth]
+  (:results
+   (u/urlopen "https://nummus.robinhood.com/accounts/" nil auth)))
+
 ;-----    AUTHED -- WATCHLIST     --------------------------------------------
 
 (defn watchlist-instruments
@@ -129,6 +135,13 @@
   (->> (watchlist-option-chains auth)
        (mapv #(opt-chain->all-date-chains % type))
        (mapv #(date-chain->prices % auth))))
+
+;-----    AUTHED -- ORDERS     --------------------------------------------
+
+(defn place-order
+  "Places an order on the given Robinhood account."
+  [auth price quantity side time-in-force type])
+
 
 ;-----    TODO     --------------------------------------------
 ;     Browse robinhood more and add to this list of TODO's

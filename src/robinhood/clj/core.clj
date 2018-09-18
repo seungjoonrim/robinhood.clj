@@ -10,7 +10,10 @@
 
   (account-info
     [this]
-    "Retrieve user account info")
+    "Retrieve user account api info")
+  (account-nummus-info
+    [this]
+    "Retrieve user account nummus api info")
   (news
     [this symbol]
     "Gets today's news")
@@ -18,47 +21,37 @@
     [this direction]
     "Gets today's sp500 movers")
   (instrument
-    [this query-params]
-    "")
+    [this query-params])
   (instruments
-    [this symbols]
-    "")
+    [this symbols])
   (quotes
-    [this query-params]
-    "")
+    [this query-params])
   (watchlist-instruments
     [this]
     "Get user watchlist instruments")
   (instrument->option-chain-url
-    [this instrument]
-    "")
+    [this instrument])
   (option-chain-base
-    [this query-params]
-    "")
+    [this query-params])
   (option-date-chain
-    [this opt-chain date type]
-    "")
+    [this opt-chain date type])
   (date-chain->prices
-    [this chain]
-    "")
+    [this chain])
   (opt-chain->all-date-chains
-    [this opt-chain type]
-    "")
+    [this opt-chain type])
   (get-option-chain-prices
-    [this query-params type]
-    "")
+    [this query-params type])
   (watchlist-option-chain-prices
-    [this type]
-    ""))
+    [this type]))
 
 (defprotocol RobinhoodOperations
 
   ^{:private true
     :doc "The robinhood web API interfaces for writing data into robinhood"}
 
-  (vote-up
-    [this id]
-    "Vote up a comment or post"))
+  (place-order
+    [this price quantity side time-in-force type]
+    "Places a Robinhood market order"))
 
 (defrecord RobinhoodClient [auth]
   RobinhoodChannels
@@ -94,6 +87,8 @@
     ; AUTHED -- GENERAL
   (account-info [this]
     (client/account-info auth))
+  (account-nummus-info [this]
+    (client/account-nummus-info auth))
 
     ; AUTHED -- WATCHLIST
   (watchlist-instruments [this]
@@ -112,5 +107,10 @@
        (if (nil? auth)
          (RobinhoodClient. nil)
          (RobinhoodClient. auth))))))
+
+(extend-type RobinhoodClient
+  RobinhoodOperations
+    (place-order [this price quantity side time-in-force type]
+      (client/place-order (:auth this) price quantity side time-in-force type)))
 
 (def rc (login auth/username auth/password))
