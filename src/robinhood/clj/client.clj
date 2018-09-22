@@ -192,6 +192,7 @@
 
 (defn place-crypto-order!
   [auth crypto-order]
+  {:pre [(s/valid? ::auth auth) (s/valid? ::crypto-order crypto-order)]}
   (let [account-id (:id (first (account-nummus-info auth)))]
     (u/post-body "https://nummus.robinhood.com/orders/"
                  (merge crypto-order {:account_id account-id})
