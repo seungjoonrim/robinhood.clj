@@ -165,7 +165,7 @@
 
 (s/def ::auth (s/keys :req-un [::access-token]))
 
-(defn place-order
+(defn place-order!
   "Places an order on the given Robinhood account."
   [auth order]
   {:pre [(s/valid? ::auth auth) (s/valid? ::order order)]}
@@ -174,7 +174,7 @@
                  (merge order {:account account-url})
                  auth))
 
- (s/fdef place-order
+ (s/fdef place-order!
    :args (s/cat :auth ::auth :order ::order)
    :ret map?))
 
@@ -190,14 +190,14 @@
                    ::trigger ::price ::side :crypto-order/quantity]
           :opt-un [::account_id ::stop-price ::client-id ::extended-hours]))
 
-(defn place-crypto-order
+(defn place-crypto-order!
   [auth crypto-order]
   (let [account-id (:id (first (account-nummus-info auth)))]
     (u/post-body "https://nummus.robinhood.com/orders/"
                  (merge crypto-order {:account_id account-id})
                  auth)))
 
-(s/fdef place-crypto-order
+(s/fdef place-crypto-order!
   :args (s/cat :auth ::auth :crypto-order ::crypto-order)
   :ret map?)
 

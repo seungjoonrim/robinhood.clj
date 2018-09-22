@@ -84,8 +84,8 @@
       (client/post
        {:content-type :application/json
         :accept :*/*
-        :debug true
-        :debug-body true
+        ; :debug true
+        ; :debug-body true
         :headers {:authority "api.robinhood.com"
                   :authorization (str "Bearer " (:access-token auth))}
         :form-params body})

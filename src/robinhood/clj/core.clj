@@ -49,9 +49,12 @@
   ^{:private true
     :doc "The robinhood web API interfaces for writing data into robinhood"}
 
-  (place-order
-    [this price quantity side time-in-force type]
-    "Places a Robinhood market order"))
+  (place-order!
+    [this order]
+    "Places a Robinhood market order")
+  (place-crypto-order!
+    [this crypto-order]
+    "Places a Robinhood crypto order"))
 
 (defrecord RobinhoodClient [auth]
   RobinhoodChannels
@@ -110,7 +113,9 @@
 
 (extend-type RobinhoodClient
   RobinhoodOperations
-    (place-order [this price quantity side time-in-force type]
-      (client/place-order (:auth this) price quantity side time-in-force type)))
+    (place-order! [this order]
+      (client/place-order! (:auth this) order))
+    (place-crypto-order! [this crypto-order]
+      (client/place-crypto-order! (:auth this) crypto-order)))
 
 (def rc (login auth/username auth/password))
