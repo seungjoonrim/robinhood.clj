@@ -1,7 +1,8 @@
 (ns robinhood.clj.client
   "DO NOT use forms under this ns."
   (:require [clj-http.client :as client]
-            [robinhood.clj.utils :as u])
+            [robinhood.clj.utils :as u]
+            [clojure.spec.alpha :as s])
   (:import [java.net URLEncoder]))
 
 ;-----    NO AUTH -- GENERAL     --------------------------------------------
@@ -138,10 +139,67 @@
 
 ;-----    AUTHED -- ORDERS     --------------------------------------------
 
+(s/def ::account string?) ;; Account URL of the account you're attempting to buy or sell with.
+(s/def ::instrument string?) ;; Instrument URL of the security you're attempting to buy or sell
+(s/def ::symbol string?) ;; The ticker symbol of the security you're attempting to buy or sell
+(s/def ::type #{"market" "limit"})
+(s/def ::time_in_force #{"gfd" "gtc" "ioc" "opg"})
+(s/def ::trigger #{"immediate" "stop"})
+(s/def ::price float?) ;; The price you're willing to accept in a sell or pay in a buy
+(s/def :order/quantity int?) ;; Number of shares you would like to buy or sell
+(s/def ::side #{"buy" "sell"})
+
+;; Required only when trigger equals "stop"
+(s/def ::stop-price float?) ;; The price at which an order with a stop trigger converts
+
+(s/def ::client-id string?) ;; Only available for OAuth applications No
+(s/def ::extended-hours boolean?) ;; Would/Should order execute when exchanges are closed No
+(s/def ::override-day-trade-checks boolean?)
+(s/def ::override-dtbp-checks boolean?)
+
+(s/def ::order
+  (s/keys :req-un [::instrument ::symbol ::type ::time_in_force
+                   ::trigger ::price ::side :order/quantity]
+          :opt-un [::account ::stop-price ::client-id ::extended-hours
+                   ::override-day-trade-checks ::override-dtbp-checks]))
+
+(s/def ::auth (s/keys :req-un [::access-token]))
+
 (defn place-order
   "Places an order on the given Robinhood account."
-  [auth price quantity side time-in-force type])
+  [auth order]
+  {:pre [(s/valid? ::auth auth) (s/valid? ::order order)]}
+  (let [account-url (:url (first (account-info auth)))]
+    (u/post-body "https://api.robinhood.com/orders/"
+                 (merge order {:account account-url})
+                 auth))
 
+ (s/fdef place-order
+   :args (s/cat :auth ::auth :order ::order)
+   :ret map?))
+
+;-----    AUTHED -- CRYPTO ORDERS     --------------------------------------------
+
+(s/def ::currency_pair_id uuid?)
+(s/def ::account_id uuid?)
+(s/def ::ref_id uuid?)
+(s/def :crypto-order/quantity float?)
+
+(s/def ::crypto-order
+  (s/keys :req-un [::currency_pair_id ::ref_id ::type ::time_in_force
+                   ::trigger ::price ::side :crypto-order/quantity]
+          :opt-un [::account_id ::stop-price ::client-id ::extended-hours]))
+
+(defn place-crypto-order
+  [auth crypto-order]
+  (let [account-id (:id (first (account-nummus-info auth)))]
+    (u/post-body "https://nummus.robinhood.com/orders/"
+                 (merge crypto-order {:account_id account-id})
+                 auth)))
+
+(s/fdef place-crypto-order
+  :args (s/cat :auth ::auth :crypto-order ::crypto-order)
+  :ret map?)
 
 ;-----    TODO     --------------------------------------------
 ;     Browse robinhood more and add to this list of TODO's

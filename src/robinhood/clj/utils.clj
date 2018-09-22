@@ -24,14 +24,14 @@
 
 (defn- response->body
   [response]
-  (if (= 200 (:status response))
+  (if (#{200 201} (:status response))
     (-> (:body response)
         (json/read-str :key-fn #(keyword (string/replace % "_" "-"))))
     nil))
 
 (defn- build-get-params
   [auth]
-  (let [default-params {:content-type :json :accept :json}
+  (let [default-params {:content-type :application/json :accept :*/*}
                         ;:debug true :debug-body true}
         header (when auth {:authority "api.robinhood.com"
                            :authorization
@@ -57,20 +57,38 @@
        response->body)))
 
 (defn urlpost
- ([url query-params]
-  (urlpost url query-params {}))
- ([url query-params form-params]
-  (let [default-form-params {:expires_in 86400
-                             :grant_type "password"
-                             :client_id client-id
-                             :scope "internal"}]
-    (-> url
-        (hic/url query-params)
-        str
-        (client/post
-          {:content-type :json
-           :accept :json
-           ;:debug true
-           ;:debug-body true
-           :form-params (merge default-form-params form-params)})
-        response->body))))
+  ([url query-params]
+   (urlpost url query-params {}))
+  ([url query-params form-params]
+   (let [default-form-params {:expires_in 86400
+                              :grant_type "password"
+                              :client_id client-id
+                              :scope "internal"}]
+     (-> url
+         (hic/url query-params)
+         str
+         (client/post
+           {:content-type :json
+            :accept :json
+            ;:debug true
+            ;:debug-body true
+            :form-params (merge default-form-params form-params)})
+         response->body))))
+
+(use 'robinhood.clj.auth)
+
+(defn post-body
+ ([url body] (post-body url body nil))
+ ([url body auth]
+  (-> url
+      (client/post
+       {:content-type :application/json
+        :accept :*/*
+        :debug true
+        :debug-body true
+        :headers {:authority "api.robinhood.com"
+                  :authorization (str "Bearer " (:access-token auth))}
+        :form-params body})
+      response->body)))
+
+
